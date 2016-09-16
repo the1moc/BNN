@@ -3,15 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SimpleNeuralNetwork.Nodes;
 
 namespace SimpleNeuralNetwork
 {
-	class Program
+	static class Program
 	{
-		static void Main(string[] args)
+		static void Main()
 		{
-			double[,] inputs = { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
+			double[][] inputs = new double[][]{
+				new double[] { 0, 0 },
+				new double[] { 0, 1 },
+				new double[] { 1, 0 },
+				new double[] { 1, 1 }
+			};
+
 			double[] targets = { 0, 1, 1, 0 };
+
+			Network neuralNetwork = new Network(2, 2, 1, 0.5);
+
+			for (int i = 0; i < inputs.Length; i++)
+			{
+				Console.WriteLine(neuralNetwork.Probe(inputs[i], targets[i])[0]);
+				Console.Read();
+			}
 		}
 	}
 }

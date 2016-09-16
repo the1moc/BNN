@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Network\Network.cs" />
+    <Compile Include="Nodes\Layer.cs" />
     <Compile Include="Nodes\Neuron.cs" />
     <Compile Include="Nodes\Neurons.cs" />
     <Compile Include="Program.cs" />

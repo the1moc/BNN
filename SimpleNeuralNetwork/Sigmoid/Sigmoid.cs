@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SimpleNeuralNetwork.Sigmoid
+namespace SimpleNeuralNetwork
 {
-	class Sigmoid
+	static class Sigmoid
 	{
 		/// <summary>
 		/// Apply the sigmoid function.
