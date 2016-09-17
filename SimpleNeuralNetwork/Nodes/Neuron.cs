@@ -40,6 +40,14 @@ namespace SimpleNeuralNetwork.Nodes
 		public double[] Weights { get; set; }
 
 		/// <summary>
+		/// Gets or sets the bias.
+		/// </summary>
+		/// <value>
+		/// The bias.
+		/// </value>
+		public double Bias { get; set; }
+
+		/// <summary>
 		/// Initialises the weights for this neuron.
 		/// </summary>
 		/// <param name="weightCount">The number of weights this neuron will have.</param>
@@ -48,10 +56,29 @@ namespace SimpleNeuralNetwork.Nodes
 			Weights    = new double[weightCount];
 			Random rng = new Random();
 
+			Bias = 0.1;
+
 			for(int i = 0; i < weightCount; i++)
 			{
-				Weights[i] = rng.NextDouble() - 0.5;
+				// On large input sets, stop the result becoming too high and nullyfing the sigmoid function.
+				Weights[i] = rng.NextDouble() - (1.0/2.0);
 			}
+		}
+
+		/// <summary>
+		/// Applies the sigmoid function to the input of this neuron.
+		/// </summary>
+		public void Sigmoid()
+		{
+			this.NeuronOutput = SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NeuronInput);
+		}
+
+		/// <summary>
+		/// Applies the derivative of the sigmoid function to the output of this neuron.
+		/// </summary>
+		public double SigmoidDerivative()
+		{
+			return SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NeuronOutput);
 		}
 	}
 }

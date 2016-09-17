@@ -65,15 +65,51 @@ namespace SimpleNeuralNetwork
 		/// Query the network.
 		/// </summary>
 		/// <param name="inputs">The inputs.</param>
-		/// <param name="targetOutput">The target output.</param>
-		public double[] Probe(double[] inputs, double targetOutput)
+		public string Probe(double[] inputs)
 		{
 			// Set the input neurons output to be the data inputs.
 			// No need for the input to be set
-			_inputNeurons.Select((neuron, index) => neuron.NeuronOutput = inputs[index]);
+			int inputIndex = 0;
 
-			Console.WriteLine(_inputNeurons);
+			foreach(Neuron neuron in _inputNeurons)
+			{
+				neuron.NeuronOutput = inputs[inputIndex];
+				inputIndex++;
+			}
 
+			FeedForward();
+
+			return String.Join(",", _outputNeurons.Select(neuron => neuron.NeuronOutput.ToString()));
+		}
+
+		/// <summary>
+		/// Train the network.
+		/// </summary>
+		/// <param name="inputs">The inputs.</param>
+		/// <param name="targetOutput">The target output.</param>
+		public void Train(double[] inputs, double target)
+		{
+			// Set the input neurons output to be the data inputs.
+			// No need for the input to be set
+			int inputIndex = 0;
+
+			foreach (Neuron neuron in _inputNeurons)
+			{
+				neuron.NeuronOutput = inputs[inputIndex];
+				inputIndex++;
+			}
+
+			FeedForward();
+
+			BackPropogate(target);
+		}
+
+		/// <summary>
+		/// Feeds the input forward through the network.
+		/// </summary>
+		/// <returns></returns>
+		public void FeedForward()
+		{
 			// Input layer -> Hidden layer
 			foreach (Neuron neuron in _inputNeurons)
 			{
@@ -85,8 +121,7 @@ namespace SimpleNeuralNetwork
 				}
 			}
 
-			// Apply the sigmoid function to each of the hidden layer neurons
-			_hiddenNeurons.Select(neuron => neuron.NeuronOutput = Sigmoid.SigmoidFunction(neuron.NeuronInput));
+			_hiddenNeurons.ApplySigmoid();
 
 			// Hidden layer -> Output layer
 			foreach (Neuron neuron in _hiddenNeurons)
@@ -99,10 +134,23 @@ namespace SimpleNeuralNetwork
 				}
 			}
 
-			// Apply the sigmoid function to each of the hidden layer neurons
-			_outputNeurons.Select(neuron => neuron.NeuronOutput = Sigmoid.SigmoidFunction(neuron.NeuronInput));
+			_outputNeurons.ApplySigmoid();
+		}
 
-			return _outputNeurons.Select(neuron => neuron.NeuronOutput).ToArray();
+		/// <summary>
+		/// Backpropogate the error through the network.
+		/// </summary>
+		private void BackPropogate(double target)
+		{
+			double totalNetworkError = 0.0;
+
+			foreach(Neuron neuron in this._outputNeurons)
+			{
+				totalNetworkError             += (0.5 * Math.Pow((target - neuron.NeuronOutput), 2));
+
+				double totalErrorAgainstOutput = -(target - neuron.NeuronOutput);
+				double outputAgainstNetInput   = neuron.SigmoidDerivative();
+			}
 		}
 
 		/// <summary>

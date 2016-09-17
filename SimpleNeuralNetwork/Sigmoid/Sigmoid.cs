@@ -5,7 +5,7 @@ namespace SimpleNeuralNetwork
 	static class Sigmoid
 	{
 		/// <summary>
-		/// Apply the sigmoid function.
+		/// The sigmoid function.
 		/// </summary>
 		/// <param name="value">The value.</param>
 		/// <returns></returns>
@@ -19,9 +19,9 @@ namespace SimpleNeuralNetwork
 		/// </summary>
 		/// <param name="value">The value.</param>
 		/// <returns></returns>
-		public static double DerivativeSigmoid(double value)
+		public static double SigmoidDerivative(double value)
 		{
-			return value * (1 - value);
+			return value * (1.0 - value);
 		}
 	}
 }

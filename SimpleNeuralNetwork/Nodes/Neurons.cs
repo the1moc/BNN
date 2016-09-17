@@ -41,5 +41,16 @@ namespace SimpleNeuralNetwork.Nodes
 				neuron.InitialiseWeights(weightCount);
 			}
 		}
+
+		/// <summary>
+		/// Apply the sigmoid function to all the neurons in this layer.
+		/// </summary>
+		public void ApplySigmoid()
+		{
+			foreach(Neuron neuron in this)
+			{
+				neuron.Sigmoid();
+			}
+		}
 	}
 }

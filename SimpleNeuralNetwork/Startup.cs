@@ -7,14 +7,14 @@ using SimpleNeuralNetwork.Nodes;
 
 namespace SimpleNeuralNetwork
 {
-	static class Program
+	static class Startup
 	{
 		static void Main()
 		{
 			double[][] inputs = new double[][]{
 				new double[] { 0, 0 },
-				new double[] { 0, 1 },
 				new double[] { 1, 0 },
+				new double[] { 0, 1 },
 				new double[] { 1, 1 }
 			};
 
@@ -24,8 +24,7 @@ namespace SimpleNeuralNetwork
 
 			for (int i = 0; i < inputs.Length; i++)
 			{
-				Console.WriteLine(neuralNetwork.Probe(inputs[i], targets[i])[0]);
-				Console.Read();
+				neuralNetwork.Train(inputs[i], targets[i]);
 			}
 		}
 	}
