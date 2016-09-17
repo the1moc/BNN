@@ -48,10 +48,10 @@ namespace SimpleNeuralNetwork.Nodes
 		public double Bias { get; set; }
 
 		/// <summary>
-		/// Initialises the weights for this neuron.
+		/// Initialises the random weights for this neuron.
 		/// </summary>
 		/// <param name="weightCount">The number of weights this neuron will have.</param>
-		public void InitialiseWeights(int weightCount)
+		public void InitialisRandomeWeights(int weightCount)
 		{
 			Weights    = new double[weightCount];
 			Random rng = new Random();

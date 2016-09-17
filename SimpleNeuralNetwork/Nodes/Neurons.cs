@@ -38,7 +38,7 @@ namespace SimpleNeuralNetwork.Nodes
 		{
 			foreach(Neuron neuron in this)
 			{
-				neuron.InitialiseWeights(weightCount);
+				neuron.InitialisRandomeWeights(weightCount);
 			}
 		}
 

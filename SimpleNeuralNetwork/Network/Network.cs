@@ -30,19 +30,9 @@ namespace SimpleNeuralNetwork
 		private readonly double _learningRate;
 
 		/// <summary>
-		/// The input neurons.
+		/// A list of all the layers in this network.
 		/// </summary>
-		private Neurons _inputNeurons;
-
-		/// <summary>
-		/// The hidden neurons.
-		/// </summary>
-		private Neurons _hiddenNeurons;
-
-		/// <summary>
-		/// The output neurons.
-		/// </summary>
-		private Neurons _outputNeurons;
+		private List<Neurons> _layerList;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Network"/> class.
@@ -67,19 +57,11 @@ namespace SimpleNeuralNetwork
 		/// <param name="inputs">The inputs.</param>
 		public string Probe(double[] inputs)
 		{
-			// Set the input neurons output to be the data inputs.
-			// No need for the input to be set
-			int inputIndex = 0;
-
-			foreach(Neuron neuron in _inputNeurons)
-			{
-				neuron.NeuronOutput = inputs[inputIndex];
-				inputIndex++;
-			}
-
+			SetInitialInputs(inputs);
 			FeedForward();
 
-			return String.Join(",", _outputNeurons.Select(neuron => neuron.NeuronOutput.ToString()));
+			// Get the last layer (output) and return a string of the output values.
+			return String.Join(",", _layerList.ElementAt(_layerList.Count - 1).Select(neuron => neuron.NeuronOutput.ToString()));
 		}
 
 		/// <summary>
@@ -89,16 +71,7 @@ namespace SimpleNeuralNetwork
 		/// <param name="targetOutput">The target output.</param>
 		public void Train(double[] inputs, double target)
 		{
-			// Set the input neurons output to be the data inputs.
-			// No need for the input to be set
-			int inputIndex = 0;
-
-			foreach (Neuron neuron in _inputNeurons)
-			{
-				neuron.NeuronOutput = inputs[inputIndex];
-				inputIndex++;
-			}
-
+			SetInitialInputs(inputs);
 			FeedForward();
 
 			BackPropogate(target);
@@ -111,30 +84,37 @@ namespace SimpleNeuralNetwork
 		public void FeedForward()
 		{
 			// Input layer -> Hidden layer
-			foreach (Neuron neuron in _inputNeurons)
-			{
-				double[] multipliedInputs = MultiplyByWeights(neuron.Weights, neuron.NeuronOutput);
-
-				for (int i = 0; i < multipliedInputs.Length; i++)
-				{
-					_hiddenNeurons.ElementAt(i).NeuronInput += multipliedInputs[i];
-				}
-			}
-
-			_hiddenNeurons.ApplySigmoid();
+			FeedForwardRoot(Layer.Input, Layer.Hidden);
 
 			// Hidden layer -> Output layer
-			foreach (Neuron neuron in _hiddenNeurons)
+			FeedForwardRoot(Layer.Hidden, Layer.Output);
+		}
+
+		/// <summary>
+		/// Perform all calculations when passing values from one layer to another.
+		/// </summary>
+		/// <param name="sending">The sending.</param>
+		/// <param name="receiving">The receiving.</param>
+		public void FeedForwardRoot(Layer sending, Layer receiving)
+		{
+			foreach (Neuron sendingNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == sending))
 			{
-				double[] multipliedInputs = MultiplyByWeights(neuron.Weights, neuron.NeuronOutput);
+				// Multiply the neuron output by each of its weights.
+				// The first element matches the first node position in the receiving layer, etc etc.
+				double[] multipliedInputs = MultiplyByWeights(sendingNeuron.Weights, sendingNeuron.NeuronOutput);
 
-				for (int i = 0; i < multipliedInputs.Length; i++)
+				// Index that matches the receiving layers node position
+				int receivingNeuronIndex = 0;
+
+				foreach (Neuron receivingNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == receiving))
 				{
-					_outputNeurons.ElementAt(i).NeuronInput += multipliedInputs[i];
+					receivingNeuron.NeuronInput += multipliedInputs[receivingNeuronIndex];
+					receivingNeuronIndex++;
 				}
-			}
 
-			_outputNeurons.ApplySigmoid();
+				// Apply the sigmoid function to each of neurons in this layer.
+				_layerList.Find(neuronLayer => neuronLayer.NetworkLayer == receiving).ApplySigmoid();
+			}
 		}
 
 		/// <summary>
@@ -142,14 +122,43 @@ namespace SimpleNeuralNetwork
 		/// </summary>
 		private void BackPropogate(double target)
 		{
-			double totalNetworkError = 0.0;
+			// The amount each weight will be changing
+			double[,] hiddenToOutputWeightChanges = new double[_hiddenNeuronCount, _outputNeuronCount];
 
-			foreach(Neuron neuron in this._outputNeurons)
+			int outputNeuronIndex = 0;
+
+			// Populate the weight changes array with the amount the weights will be effected
+			foreach (Neuron outputNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == Layer.Output))
 			{
-				totalNetworkError             += (0.5 * Math.Pow((target - neuron.NeuronOutput), 2));
+				double totalErrorAgainstOutput = -(target - outputNeuron.NeuronOutput);
+				double outputAgainstNetInput   = outputNeuron.SigmoidDerivative();
 
-				double totalErrorAgainstOutput = -(target - neuron.NeuronOutput);
-				double outputAgainstNetInput   = neuron.SigmoidDerivative();
+				// Index that matches the receiving layers node position
+				int hiddenNeuronIndex = 0;
+
+				foreach(Neuron hiddenNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == Layer.Hidden))
+				{
+					double netInputAgainstWeight                                      = hiddenNeuron.NeuronOutput;
+					hiddenToOutputWeightChanges[hiddenNeuronIndex, outputNeuronIndex] = totalErrorAgainstOutput * outputAgainstNetInput * netInputAgainstWeight;
+
+					hiddenNeuronIndex++;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Give the input layer of neurons their output data.
+		/// </summary>
+		/// <param name="inputs">The inputs.</param>
+		public void SetInitialInputs(double[] inputs)
+		{
+			// Set the input neurons output to be the data inputs.
+			int inputIndex = 0;
+
+			foreach (Neuron inputNeuron in _layerList.ElementAt(0))
+			{
+				inputNeuron.NeuronOutput = inputs[inputIndex];
+				inputIndex++;
 			}
 		}
 
@@ -168,14 +177,21 @@ namespace SimpleNeuralNetwork
 		private void CreateNeuronLayers()
 		{
 			// Create the neuron layers and give them some random initial weights
-			_inputNeurons  = new Neurons(_inputNeuronCount, Layer.Input);
+			Neurons _inputNeurons  = new Neurons(_inputNeuronCount, Layer.Input);
 			_inputNeurons.InitialiseWeights(_hiddenNeuronCount);
 
-			_hiddenNeurons = new Neurons(_hiddenNeuronCount, Layer.Hidden);
+			Neurons _hiddenNeurons = new Neurons(_hiddenNeuronCount, Layer.Hidden);
 			_hiddenNeurons.InitialiseWeights(_outputNeuronCount);
 
 			// No weights are needed for the output neurons
-			_outputNeurons = new Neurons(_outputNeuronCount, Layer.Output);
+			Neurons _outputNeurons = new Neurons(_outputNeuronCount, Layer.Output);
+
+			// Add each layer to a list.
+			_layerList = new List<Neurons>();
+
+			_layerList.Add(_inputNeurons);
+			_layerList.Add(_hiddenNeurons);
+			_layerList.Add(_outputNeurons);
 		}
 
 	}
