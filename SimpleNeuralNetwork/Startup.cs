@@ -12,9 +12,9 @@ namespace SimpleNeuralNetwork
 		static void Main()
 		{
 			double[][] inputs = new double[][]{
-				new double[] { 0, 0 },
-				new double[] { 1, 0 },
-				new double[] { 0, 1 },
+				new double[] { 0.01, 0.01 },
+				new double[] { 1, 0.01 },
+				new double[] { 0.01, 1 },
 				new double[] { 1, 1 }
 			};
 
@@ -22,10 +22,18 @@ namespace SimpleNeuralNetwork
 
 			Network neuralNetwork = new Network(2, 2, 1, 0.5);
 
-			for (int i = 0; i < inputs.Length; i++)
+			for (int j = 0; j < 2000; j++)
 			{
-				neuralNetwork.Train(inputs[i], targets[i]);
+				for (int i = 0; i < inputs.Length; i++)
+				{
+					neuralNetwork.Train(inputs[i], targets[i]);
+					Console.Read();
+				}
 			}
+
+			Console.WriteLine("asdkhasd");
+			Console.WriteLine(neuralNetwork.Probe(new double[] { 0, 1 }));
+			
 		}
 	}
 }

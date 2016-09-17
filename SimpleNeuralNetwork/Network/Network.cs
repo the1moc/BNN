@@ -32,7 +32,12 @@ namespace SimpleNeuralNetwork
 		/// <summary>
 		/// A list of all the layers in this network.
 		/// </summary>
-		private List<Neurons> _layerList;
+		private Layers _layerList;
+
+		/// <summary>
+		/// Have the weights been generated already?
+		/// </summary>
+		private bool _areWeightsInitialised;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Network"/> class.
@@ -97,7 +102,7 @@ namespace SimpleNeuralNetwork
 		/// <param name="receiving">The receiving.</param>
 		public void FeedForwardRoot(Layer sending, Layer receiving)
 		{
-			foreach (Neuron sendingNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == sending))
+			foreach (Neuron sendingNeuron in _layerList.GetLayer(sending))
 			{
 				// Multiply the neuron output by each of its weights.
 				// The first element matches the first node position in the receiving layer, etc etc.
@@ -106,42 +111,105 @@ namespace SimpleNeuralNetwork
 				// Index that matches the receiving layers node position
 				int receivingNeuronIndex = 0;
 
-				foreach (Neuron receivingNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == receiving))
+				foreach (Neuron receivingNeuron in _layerList.GetLayer(receiving))
 				{
 					receivingNeuron.NeuronInput += multipliedInputs[receivingNeuronIndex];
 					receivingNeuronIndex++;
 				}
 
 				// Apply the sigmoid function to each of neurons in this layer.
-				_layerList.Find(neuronLayer => neuronLayer.NetworkLayer == receiving).ApplySigmoid();
+				_layerList.GetLayer(receiving).ApplySigmoid();
 			}
 		}
 
 		/// <summary>
 		/// Backpropogate the error through the network.
 		/// </summary>
+		/// <param name="target">The target output.</param>
 		private void BackPropogate(double target)
 		{
 			// The amount each weight will be changing
 			double[,] hiddenToOutputWeightChanges = new double[_hiddenNeuronCount, _outputNeuronCount];
+			double[,] inputToHiddenWeightChanges  = new double[_inputNeuronCount, _hiddenNeuronCount];
 
 			int outputNeuronIndex = 0;
+			int hiddenNeuronIndex = 0;
 
 			// Populate the weight changes array with the amount the weights will be effected
-			foreach (Neuron outputNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == Layer.Output))
+			foreach (Neuron outputNeuron in _layerList.GetLayer(Layer.Output))
 			{
-				double totalErrorAgainstOutput = -(target - outputNeuron.NeuronOutput);
-				double outputAgainstNetInput   = outputNeuron.SigmoidDerivative();
+				Console.WriteLine(outputNeuron.NeuronOutput);
 
-				// Index that matches the receiving layers node position
-				int hiddenNeuronIndex = 0;
+				double errorAgainstNetInput = -(target - outputNeuron.NeuronOutput) * outputNeuron.SigmoidDerivative();
 
-				foreach(Neuron hiddenNeuron in _layerList.Find(neuronLayer => neuronLayer.NetworkLayer == Layer.Hidden))
+				foreach(Neuron hiddenNeuron in _layerList.GetLayer(Layer.Hidden))
 				{
 					double netInputAgainstWeight                                      = hiddenNeuron.NeuronOutput;
-					hiddenToOutputWeightChanges[hiddenNeuronIndex, outputNeuronIndex] = totalErrorAgainstOutput * outputAgainstNetInput * netInputAgainstWeight;
+					hiddenToOutputWeightChanges[hiddenNeuronIndex, outputNeuronIndex] = errorAgainstNetInput * netInputAgainstWeight;
 
 					hiddenNeuronIndex++;
+				}
+
+				outputNeuronIndex++;
+			}
+
+			hiddenNeuronIndex = 0;
+			outputNeuronIndex = 0;
+
+			// Populate the weight changes array with the amount the weights will be effected
+			foreach (Neuron hiddenNeuron in _layerList.GetLayer(Layer.Hidden))
+			{
+				double totalErrorAgainstHiddenNeuron = 0.0;
+				outputNeuronIndex                    = 0;
+				
+				foreach (Neuron outputNeuron in _layerList.GetLayer(Layer.Output))
+				{
+					double errorAgainstNetInput = -(target - outputNeuron.NeuronOutput) * outputNeuron.SigmoidDerivative();
+
+					totalErrorAgainstHiddenNeuron += errorAgainstNetInput * hiddenNeuron.Weights[outputNeuronIndex];
+
+					outputNeuronIndex++;
+				}
+
+				double outputAgainstInput = hiddenNeuron.SigmoidDerivative();
+
+				int inputNeuronIndex = 0;
+
+				foreach(Neuron inputNeuron in _layerList.GetLayer(Layer.Input))
+				{
+					double inputAgainstWeight = inputNeuron.NeuronOutput;
+					inputToHiddenWeightChanges[inputNeuronIndex, hiddenNeuronIndex] = totalErrorAgainstHiddenNeuron * outputAgainstInput * inputAgainstWeight;
+
+					inputNeuronIndex++;
+				}
+
+				hiddenNeuronIndex++;
+			}
+
+			UpdateWeights(inputToHiddenWeightChanges, hiddenToOutputWeightChanges);
+		}
+
+		/// <summary>
+		/// Update the network weights..
+		/// </summary>
+		/// <returns></returns>
+		private void UpdateWeights(double[,] inputWeights, double[,] hiddenWeights)
+		{
+			int inputNeuronIndex = 0;
+			foreach(Neuron inputNeuron in _layerList.GetLayer(Layer.Input))
+			{
+				for(int i = 0; i < inputNeuron.Weights.Length; i++)
+				{
+					inputNeuron.Weights[i] -= _learningRate * inputWeights[inputNeuronIndex,i];
+				}
+			}
+
+			int hiddenNeuronIndex = 0;
+			foreach (Neuron hiddenNeuron in _layerList.GetLayer(Layer.Hidden))
+			{
+				for (int i = 0; i < hiddenNeuron.Weights.Length; i++)
+				{
+					hiddenNeuron.Weights[i] -= _learningRate * hiddenWeights[hiddenNeuronIndex, i];
 				}
 			}
 		}
@@ -187,7 +255,7 @@ namespace SimpleNeuralNetwork
 			Neurons _outputNeurons = new Neurons(_outputNeuronCount, Layer.Output);
 
 			// Add each layer to a list.
-			_layerList = new List<Neurons>();
+			_layerList = new Layers();
 
 			_layerList.Add(_inputNeurons);
 			_layerList.Add(_hiddenNeurons);
