@@ -46,10 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Network\Network.cs" />
-    <Compile Include="Nodes\Layer.cs" />
+    <Compile Include="Nodes\LayerType.cs" />
     <Compile Include="Nodes\Layers.cs" />
-    <Compile Include="Nodes\Neuron.cs" />
-    <Compile Include="Nodes\Neurons.cs" />
+    <Compile Include="Nodes\Node.cs" />
+    <Compile Include="Nodes\Nodes.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sigmoid\Sigmoid.cs" />

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimpleNeuralNetwork.Nodes
+namespace SimpleNeuralNetwork.Elements
 {
-	class Neurons : List<Neuron>
+	class Nodes : List<Node>
 	{
 		/// <summary>
 		/// Gets or sets the network layer.
@@ -14,42 +14,42 @@ namespace SimpleNeuralNetwork.Nodes
 		/// <value>
 		/// The network layer.
 		/// </value>
-		public Layer NetworkLayer { get; set; }
+		public LayerType NetworkLayer { get; set; }
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Neurons"/> class.
+		/// Initializes a new instance of the <see cref="Nodes"/> class.
 		/// </summary>
 		/// <param name="nodeCount">The number of nodes in this layer.</param>
-		public Neurons(int nodeCount, Layer layer)
+		public Nodes(int nodeCount, LayerType layer)
 		{
 			NetworkLayer = layer;
 
 			for (int i = 0; i < nodeCount; i ++)
 			{
-				this.Add(new Neuron());
+				this.Add(new Node());
 			}
 		}
 
 		/// <summary>
-		/// Initialises the weights for the neurons in this layer.
+		/// Initialises the weights for the Nodes in this layer.
 		/// </summary>
-		/// <param name="weightCount">The number of weights for each neuron.</param>
+		/// <param name="weightCount">The number of weights for each Node.</param>
 		public void InitialiseWeights(int weightCount)
 		{
-			foreach(Neuron neuron in this)
+			foreach(Node Node in this)
 			{
-				neuron.InitialisRandomeWeights(weightCount);
+				Node.InitialisRandomeWeights(weightCount);
 			}
 		}
 
 		/// <summary>
-		/// Apply the sigmoid function to all the neurons in this layer.
+		/// Apply the sigmoid function to all the Nodes in this layer.
 		/// </summary>
 		public void ApplySigmoid()
 		{
-			foreach(Neuron neuron in this)
+			foreach(Node Node in this)
 			{
-				neuron.Sigmoid();
+				Node.Sigmoid();
 			}
 		}
 	}

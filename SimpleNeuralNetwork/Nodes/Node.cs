@@ -5,35 +5,35 @@ using System.Text;
 using System.Threading.Tasks;
 using SimpleNeuralNetwork;
 
-namespace SimpleNeuralNetwork.Nodes
+namespace SimpleNeuralNetwork.Elements
 {
-	class Neuron
+	class Node
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Neuron"/> class.
+		/// Initializes a new instance of the <see cref="Node"/> class.
 		/// </summary>
-		public Neuron()
+		public Node()
 		{
 		}
 
 		/// <summary>
-		/// Gets or sets the neuron output.
+		/// Gets or sets the Node output.
 		/// </summary>
 		/// <value>
-		/// The neuron output.
+		/// The Node output.
 		/// </value>
-		public double NeuronOutput { get; set; }
+		public double NodeOutput { get; set; }
 
 		/// <summary>
-		/// Gets or sets the neuron input.
+		/// Gets or sets the Node input.
 		/// </summary>
 		/// <value>
-		/// The neuron input.
+		/// The Node input.
 		/// </value>
-		public double NeuronInput { get; set; }
+		public double NodeInput { get; set; }
 
 		/// <summary>
-		/// Gets or sets the weights coming from this neuron.
+		/// Gets or sets the weights coming from this Node.
 		/// </summary>
 		/// <value>
 		/// The weights.
@@ -49,9 +49,9 @@ namespace SimpleNeuralNetwork.Nodes
 		public double Bias { get; set; }
 
 		/// <summary>
-		/// Initialises the random weights for this neuron.
+		/// Initialises the random weights for this Node.
 		/// </summary>
-		/// <param name="weightCount">The number of weights this neuron will have.</param>
+		/// <param name="weightCount">The number of weights this Node will have.</param>
 		public void InitialisRandomeWeights(int weightCount)
 		{
 			Weights    = new double[weightCount];
@@ -67,19 +67,19 @@ namespace SimpleNeuralNetwork.Nodes
 		}
 
 		/// <summary>
-		/// Applies the sigmoid function to the input of this neuron.
+		/// Applies the sigmoid function to the input of this Node.
 		/// </summary>
 		public void Sigmoid()
 		{
-			this.NeuronOutput = SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NeuronInput);
+			this.NodeOutput = SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NodeInput);
 		}
 
 		/// <summary>
-		/// Applies the derivative of the sigmoid function to the output of this neuron.
+		/// Applies the derivative of the sigmoid function to the output of this Node.
 		/// </summary>
 		public double SigmoidDerivative()
 		{
-			return SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NeuronOutput);
+			return SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NodeOutput);
 		}
 	}
 }
