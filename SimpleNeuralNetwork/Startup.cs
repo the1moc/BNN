@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SimpleNeuralNetwork.Elements;
+using System.Threading;
 
 namespace SimpleNeuralNetwork
 {
@@ -12,29 +13,24 @@ namespace SimpleNeuralNetwork
 		static void Main()
 		{
 			double[][] inputs = new double[][]{
-				new double[] { 0.01, 0.01 },
-				new double[] { 0.99, 0.01 },
-				new double[] { 0.01, 0.99 },
-				new double[] { 0.99, 0.99 }
+				new double[] { 0.0, 0.0 },
+				new double[] { 1.0, 0.0 },
+				new double[] { 0.0, 1.0 },
+				new double[] { 1.0, 1.0 }
 			};
 
-			double[][] targets = new double[][]{
-				new double[] { 0.01 },
-				new double[] { 0.99 },
-				new double[] { 0.99 },
-				new double[] { 0.01 }
-			};
+			double[] targets = { 0, 1, 1, 0 };
 
-			Network neuralNetwork = new Network(2, 2, 1, 0.3);
+			Network neuralNetwork = new Network(2, 2, 1, 0.5);
 
-			for (int j = 0; j < 400; j++)
+			for (int j = 0; j < 2000; j++)
 			{
 				for (int i = 0; i < inputs.Length; i++)
 				{
 					neuralNetwork.Train(inputs[i], targets[i]);
 				}
 			}
-			
+
 		}
 	}
 }

@@ -52,7 +52,7 @@
     <Compile Include="Nodes\Nodes.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sigmoid\Sigmoid.cs" />
+    <Compile Include="Sigmoid\SigmoidFunctions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

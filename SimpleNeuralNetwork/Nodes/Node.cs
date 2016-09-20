@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SimpleNeuralNetwork;
+using SimpleNeuralNetwork.Sigmoid;
 
 namespace SimpleNeuralNetwork.Elements
 {
@@ -17,23 +17,23 @@ namespace SimpleNeuralNetwork.Elements
 		}
 
 		/// <summary>
-		/// Gets or sets the Node output.
+		/// Gets or sets the node output.
 		/// </summary>
 		/// <value>
-		/// The Node output.
+		/// The node output.
 		/// </value>
 		public double NodeOutput { get; set; }
 
 		/// <summary>
-		/// Gets or sets the Node input.
+		/// Gets or sets the node input.
 		/// </summary>
 		/// <value>
-		/// The Node input.
+		/// The node input.
 		/// </value>
 		public double NodeInput { get; set; }
 
 		/// <summary>
-		/// Gets or sets the weights coming from this Node.
+		/// Gets or sets the weights coming from this node.
 		/// </summary>
 		/// <value>
 		/// The weights.
@@ -49,37 +49,53 @@ namespace SimpleNeuralNetwork.Elements
 		public double Bias { get; set; }
 
 		/// <summary>
-		/// Initialises the random weights for this Node.
+		/// Gets or sets the error on this node.
 		/// </summary>
-		/// <param name="weightCount">The number of weights this Node will have.</param>
+		/// <value>
+		/// The error.
+		/// </value>
+		public double Error { get; set; }
+
+		/// <summary>
+		/// Initialises the random weights for this node.
+		/// </summary>
+		/// <param name="weightCount">The number of weights this node will have.</param>
 		public void InitialisRandomeWeights(int weightCount)
 		{
 			Weights    = new double[weightCount];
 			Random rng = new Random();
 
-			Bias = 0.1;
+			//Bias = 0.1;
 
 			for(int i = 0; i < weightCount; i++)
 			{
 				// On large input sets, stop the result becoming too high and nullyfing the sigmoid function.
-				Weights[i] = rng.NextDouble() - (1.0/2.0);
+				Weights[i] = rng.NextDouble() - 0.5;
 			}
 		}
 
 		/// <summary>
-		/// Applies the sigmoid function to the input of this Node.
+		/// Applies the sigmoid function to the input of this node.
 		/// </summary>
 		public void Sigmoid()
 		{
-			this.NodeOutput = SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NodeInput);
+			this.NodeOutput = SigmoidFunctions.Sigmoid(this.NodeInput);
 		}
 
 		/// <summary>
-		/// Applies the derivative of the sigmoid function to the output of this Node.
+		/// Applies the derivative of the sigmoid function to the output of this node.
 		/// </summary>
 		public double SigmoidDerivative()
 		{
-			return SimpleNeuralNetwork.Sigmoid.SigmoidFunction(this.NodeOutput);
+			return SigmoidFunctions.SigmoidDerivative(this.NodeOutput);
+		}
+
+		/// <summary>
+		/// Clears the input for this node (set it back to 0).
+		/// </summary>
+		public void ClearInputs()
+		{
+			this.NodeInput = 0;
 		}
 	}
 }

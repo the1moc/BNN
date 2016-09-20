@@ -15,7 +15,15 @@ namespace SimpleNeuralNetwork.Elements
 		/// <returns></returns>
 		public Nodes GetLayer(LayerType layer)
 		{
-			return this.Find(NodeLayer => NodeLayer.NetworkLayer == layer);
+			return this.Find(nodeLayer => nodeLayer.NetworkLayer == layer);
+		}
+
+		/// <summary>
+		/// Clears the inputs for each list of nodes.
+		/// </summary>
+		public void ClearInputs()
+		{
+			this.ForEach(nodes => nodes.ClearInputs());
 		}
 	}
 }

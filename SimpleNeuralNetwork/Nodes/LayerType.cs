@@ -1,6 +1,6 @@
 ﻿namespace SimpleNeuralNetwork.Elements
 {
-	enum LayerType
+	public enum LayerType
 	{
 		Input = 0,
 		Hidden = 1,

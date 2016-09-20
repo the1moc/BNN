@@ -1,15 +1,15 @@
 ﻿using System;
 
-namespace SimpleNeuralNetwork
+namespace SimpleNeuralNetwork.Sigmoid
 {
-	static class Sigmoid
+	static class SigmoidFunctions
 	{
 		/// <summary>
 		/// The sigmoid function.
 		/// </summary>
 		/// <param name="value">The value.</param>
 		/// <returns></returns>
-		public static double SigmoidFunction(double value)
+		public static double Sigmoid(double value)
 		{
 			return 1.0 / (1.0 + Math.Exp(-value));
 		}
