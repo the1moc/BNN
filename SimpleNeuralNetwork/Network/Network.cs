@@ -40,14 +40,14 @@ namespace SimpleNeuralNetwork
 		/// Initializes a new instance of the <see cref="Network"/> class.
 		/// </summary>
 		/// <param name="inputCount">The input count.</param>
-		/// <param name="hiddenNeuronCount">The hidden neuron count.</param>
-		/// <param name="outputNeuronCount">The output neuron count.</param>
+		/// <param name="hiddenNodeCount">The hidden node count.</param>
+		/// <param name="outputNodeCount">The output node count.</param>
 		/// <param name="learningRate">The learning rate.</param>
-		public Network(int inputCount, int hiddenNeuronCount, int outputNeuronCount, double learningRate)
+		public Network(int inputCount, int hiddenNodeCount, int outputNodeCount, double learningRate)
 		{
 			_inputNodeCount  = inputCount;
-			_hiddenNodeCount = hiddenNeuronCount;
-			_outputNodeCount = outputNeuronCount;
+			_hiddenNodeCount = hiddenNodeCount;
+			_outputNodeCount = outputNodeCount;
 			_learningRate    = learningRate;
 
 			CreateNeuronLayers();
