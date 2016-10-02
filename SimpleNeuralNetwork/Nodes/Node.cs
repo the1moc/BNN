@@ -70,7 +70,7 @@ namespace SimpleNeuralNetwork.Elements
 			for(int i = 0; i < weightCount; i++)
 			{
 				// On large input sets, stop the result becoming too high and nullyfing the sigmoid function.
-				Weights[i] = rng.NextDouble() - 0.5;
+				Weights[i] = rng.NextDouble();
 			}
 		}
 

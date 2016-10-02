@@ -127,8 +127,8 @@ namespace SimpleNeuralNetwork
 		private void BackPropogate(double target)
 		{
 			// The amount each weight will be changing
-			double[,] hiddenToOutputWeightChanges = new double[_hiddenNodeCount, _outputNodeCount];
-			double[,] inputToHiddenWeightChanges  = new double[_inputNodeCount, _hiddenNodeCount];
+			double[,] changeOutputWeights = new double[_hiddenNodeCount, _outputNodeCount];
+			double[,] changeHiddenWeights = new double[_inputNodeCount, _hiddenNodeCount];
 
 			int hiddenNodeIndex;
 			int outputNodeIndex;
@@ -137,8 +137,7 @@ namespace SimpleNeuralNetwork
 			// Calculate the error for each output node
 			foreach (Node outputNeuron in _layerList.GetLayer(LayerType.Output))
 			{
-				Console.WriteLine(outputNeuron.NodeOutput);
-				outputNeuron.Error = (target - outputNeuron.NodeOutput);
+				outputNeuron.Error = (target - outputNeuron.NodeOutput) * outputNeuron.SigmoidDerivative();
 			}
 
 			outputNodeIndex = 0;
@@ -167,7 +166,7 @@ namespace SimpleNeuralNetwork
 				{
 					for (int i = 0; i < _outputNodeCount; i++)
 					{
-						hiddenToOutputWeightChanges[hiddenNodeIndex, i] = hiddenNode.NodeOutput * outputNode.Error;
+						changeOutputWeights[hiddenNodeIndex, i] = hiddenNode.NodeOutput * outputNode.Error;
 					}
 				}
 
@@ -182,40 +181,39 @@ namespace SimpleNeuralNetwork
 				{
 					for (int i = 0; i < _hiddenNodeCount; i++)
 					{
-						inputToHiddenWeightChanges[inputNodeIndex, i] = inputNode.NodeOutput * hiddenNode.Error;
-						
+						changeHiddenWeights[inputNodeIndex, i] = inputNode.NodeOutput * hiddenNode.Error;
 					}
 				}
 				inputNodeIndex++;
 			}
 
-			UpdateWeights(inputToHiddenWeightChanges, hiddenToOutputWeightChanges);
+			UpdateWeights(changeHiddenWeights, changeOutputWeights);
 		}
 
 		/// <summary>
 		/// Update the network weights..
 		/// </summary>
 		/// <returns></returns>
-		private void UpdateWeights(double[,] inputWeights, double[,] hiddenWeights)
+		private void UpdateWeights(double[,] changeInputWeights, double[,] changeHiddenWeights)
 		{
-			int inputNeuronIndex = 0;
-			foreach(Node inputNeuron in _layerList.GetLayer(LayerType.Input))
-			{
-				for(int i = 0; i < inputNeuron.Weights.Length; i++)
-				{
-					inputNeuron.Weights[i] += _learningRate * inputWeights[inputNeuronIndex,i];
-				}
-				inputNeuronIndex++;
-			}
-
 			int hiddenNeuronIndex = 0;
 			foreach (Node hiddenNeuron in _layerList.GetLayer(LayerType.Hidden))
 			{
 				for (int i = 0; i < hiddenNeuron.Weights.Length; i++)
 				{
-					hiddenNeuron.Weights[i] += _learningRate * hiddenWeights[hiddenNeuronIndex, i];
+					hiddenNeuron.Weights[i] += _learningRate * changeHiddenWeights[hiddenNeuronIndex, i];
 				}
 				hiddenNeuronIndex++;
+			}
+
+			int inputNeuronIndex = 0;
+			foreach(Node inputNeuron in _layerList.GetLayer(LayerType.Input))
+			{
+				for(int i = 0; i < inputNeuron.Weights.Length; i++)
+				{
+					inputNeuron.Weights[i] += _learningRate * changeInputWeights[inputNeuronIndex,i];
+				}
+				inputNeuronIndex++;
 			}
 		}
 
