@@ -41,6 +41,14 @@ namespace SimpleNeuralNetwork.Elements
 		public double[] Weights { get; set; }
 
 		/// <summary>
+		/// Gets or sets each of the weights multiplied by the nodes input.
+		/// </summary>
+		/// <value>
+		/// The multiplied input by weights.
+		/// </value>
+		public double[] MultipliedInputByWeights { get; set; }
+
+		/// <summary>
 		/// Gets or sets the bias.
 		/// </summary>
 		/// <value>
@@ -60,17 +68,14 @@ namespace SimpleNeuralNetwork.Elements
 		/// Initialises the random weights for this node.
 		/// </summary>
 		/// <param name="weightCount">The number of weights this node will have.</param>
-		public void InitialisRandomeWeights(int weightCount)
+		public void InitialiseRandomWeights(int weightCount)
 		{
 			Weights    = new double[weightCount];
-			Random rng = new Random();
-
-			//Bias = 0.1;
 
 			for(int i = 0; i < weightCount; i++)
 			{
 				// On large input sets, stop the result becoming too high and nullyfing the sigmoid function.
-				Weights[i] = rng.NextDouble();
+				Weights[i] = Util.NumberUtils.GetRandomDouble();
 			}
 		}
 
@@ -93,9 +98,26 @@ namespace SimpleNeuralNetwork.Elements
 		/// <summary>
 		/// Clears the input for this node (set it back to 0).
 		/// </summary>
-		public void ClearInputs()
+		public void ClearInput()
 		{
-			this.NodeInput = 0;
+			NodeInput = 0;
+		}
+
+		/// <summary>
+		/// Clears the input for this node (set it back to 0).
+		/// </summary>
+		public void ClearOutput()
+		{
+			NodeOutput = 0;
+		}
+
+		/// <summary>
+		/// Multiply the input of this node by all the outgoing weights.
+		/// </summary> 
+		/// <param name="weights">The weights.</param>
+		public void MultiplyByWeights()
+		{
+			MultipliedInputByWeights = Weights.Select(weight => weight * (NodeInput == 0 ? NodeOutput : NodeInput)).ToArray();
 		}
 	}
 }

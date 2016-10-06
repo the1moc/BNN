@@ -53,6 +53,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sigmoid\SigmoidFunctions.cs" />
+    <Compile Include="Util\NumberUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

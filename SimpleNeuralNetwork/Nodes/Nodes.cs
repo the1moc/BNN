@@ -36,20 +36,39 @@ namespace SimpleNeuralNetwork.Elements
 		/// <param name="weightCount">The number of weights for each Node.</param>
 		public void InitialiseWeights(int weightCount)
 		{
-			this.ForEach(node => node.InitialisRandomeWeights(weightCount));
+			this.ForEach(node => node.InitialiseRandomWeights(weightCount));
 		}
 
 		/// <summary>
 		/// Apply the sigmoid function to all the Nodes in this layer.
 		/// </summary>
-		public void ApplySigmoid()
+		public void ApplySigmoidToNodes()
 		{
 			this.ForEach(node => node.Sigmoid());
 		}
 
-		public void ClearInputs()
+        /// <summary>
+        /// Clears the input for all of the nodes contained in this collection.
+        /// </summary>
+        public void ClearInputs()
 		{
-			this.ForEach(node => node.ClearInputs());
+			this.ForEach(node => node.ClearInput());
 		}
+
+        /// <summary>
+        /// Clears the output for all of the nodes contained in this collection.
+        /// </summary>
+        public void ClearOutputs()
+        {
+            this.ForEach(node => node.ClearOutput());
+        }
+
+        /// <summary>
+        /// Multiplies each nodes weights by all outgoing weights for each of the nodes in this collection.
+        /// </summary>
+        public void MultiplyWeightsByInput()
+        {
+            this.ForEach(node => node.MultiplyByWeights());
+        }
 	}
 }

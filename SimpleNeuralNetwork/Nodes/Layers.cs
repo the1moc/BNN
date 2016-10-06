@@ -25,5 +25,12 @@ namespace SimpleNeuralNetwork.Elements
 		{
 			this.ForEach(nodes => nodes.ClearInputs());
 		}
-	}
+
+        /// Clears the outputs for each list of nodes.
+        /// </summary>
+        public void ClearOutputs()
+        {
+            this.ForEach(nodes => nodes.ClearOutputs());
+        }
+    }
 }

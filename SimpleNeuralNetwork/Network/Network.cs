@@ -32,11 +32,6 @@ namespace SimpleNeuralNetwork
 		private Layers _layerList;
 
 		/// <summary>
-		/// Have the weights been generated already?
-		/// </summary>
-		private bool _areWeightsInitialised;
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="Network"/> class.
 		/// </summary>
 		/// <param name="inputCount">The input count.</param>
@@ -50,20 +45,22 @@ namespace SimpleNeuralNetwork
 			_outputNodeCount = outputNodeCount;
 			_learningRate    = learningRate;
 
-			CreateNeuronLayers();
+			CreateNodeLayers();
 		}
 
 		/// <summary>
 		/// Query the network.
 		/// </summary>
 		/// <param name="inputs">The inputs.</param>
-		public string Probe(double[] inputs)
+		public double Probe(double[] inputs)
 		{
+			ClearExistingInputs();
+			ClearExistingOutputs();
 			SetInitialInputs(inputs);
 			FeedForward();
 
 			// Get the last layer (output) and return a string of the output values.
-			return String.Join(",", _layerList.ElementAt(_layerList.Count - 1).Select(neuron => neuron.NodeOutput.ToString()));
+			return _layerList.GetLayer(LayerType.Output).ElementAt(0).NodeOutput;
 		}
 
 		/// <summary>
@@ -74,6 +71,7 @@ namespace SimpleNeuralNetwork
 		public void Train(double[] inputs, double target)
 		{
 			ClearExistingInputs();
+			ClearExistingOutputs();
 			SetInitialInputs(inputs);
 			FeedForward();
 
@@ -96,28 +94,24 @@ namespace SimpleNeuralNetwork
 		/// <summary>
 		/// Perform all calculations when passing values from one layer to another.
 		/// </summary>
-		/// <param name="sending">The sending.</param>
-		/// <param name="receiving">The receiving.</param>
+		/// <param name="sending">The sending layer type.</param>
+		/// <param name="receiving">The receiving layer type.</param>
 		public void FeedForwardRoot(LayerType sending, LayerType receiving)
 		{
-			foreach (Node sendingNeuron in _layerList.GetLayer(sending))
+			// For all ths nodes in this layer, multiply their input by their outgoing weights and set this value.
+			_layerList.GetLayer(sending).MultiplyWeightsByInput();
+
+			// Index that matches the receiving layers node position
+			int receivingNodeIndex = 0;
+
+			foreach (Node receivingNode in _layerList.GetLayer(receiving))
 			{
-				// Multiply the neuron output by each of its weights.
-				// The first element matches the first node position in the receiving layer, etc etc.
-				double[] multipliedInputs = MultiplyByWeights(sendingNeuron.Weights, sendingNeuron.NodeOutput);
-
-				// Index that matches the receiving layers node position
-				int receivingNeuronIndex = 0;
-
-				foreach (Node receivingNeuron in _layerList.GetLayer(receiving))
-				{
-					receivingNeuron.NodeInput += multipliedInputs[receivingNeuronIndex];
-					receivingNeuronIndex++;
-				}
-
-				// Apply the sigmoid function to each of neurons in this layer.
-				_layerList.GetLayer(receiving).ApplySigmoid();
+				_layerList.GetLayer(sending).ForEach(sendingNode => receivingNode.NodeInput += sendingNode.MultipliedInputByWeights[receivingNodeIndex]);
+				receivingNodeIndex++;
 			}
+
+			// Apply the sigmoid function to each of nodes in this layer.
+			_layerList.GetLayer(receiving).ApplySigmoidToNodes();
 		}
 
 		/// <summary>
@@ -126,109 +120,79 @@ namespace SimpleNeuralNetwork
 		/// <param name="target">The target output.</param>
 		private void BackPropogate(double target)
 		{
-			// The amount each weight will be changing
-			double[,] changeOutputWeights = new double[_hiddenNodeCount, _outputNodeCount];
-			double[,] changeHiddenWeights = new double[_inputNodeCount, _hiddenNodeCount];
-
-			int hiddenNodeIndex;
 			int outputNodeIndex;
-			int inputNodeIndex;
 
 			// Calculate the error for each output node
-			foreach (Node outputNeuron in _layerList.GetLayer(LayerType.Output))
+			foreach (Node outputNode in _layerList.GetLayer(LayerType.Output))
 			{
-				outputNeuron.Error = (target - outputNeuron.NodeOutput) * outputNeuron.SigmoidDerivative();
+				outputNode.Error = (target - outputNode.NodeOutput) * outputNode.SigmoidDerivative();
 			}
 
 			outputNodeIndex = 0;
 
 			// Calculate the error for each hidden node
-			foreach (Node hiddenNeuron in _layerList.GetLayer(LayerType.Hidden))
+			foreach (Node hiddenNode in _layerList.GetLayer(LayerType.Hidden))
 			{
-				double totalErrorAgainstHiddenNeuron = 0.0;
+				double totalErrorAgainstHiddenNode = 0.0;
 
-				foreach (Node outputNeuron in _layerList.GetLayer(LayerType.Output))
+				foreach (Node outputNode in _layerList.GetLayer(LayerType.Output))
 				{
-					totalErrorAgainstHiddenNeuron += outputNeuron.Error * hiddenNeuron.Weights[outputNodeIndex];
+					totalErrorAgainstHiddenNode += outputNode.Error * hiddenNode.Weights[outputNodeIndex];
 
 					outputNodeIndex++;
 				}
 
-				hiddenNeuron.Error = totalErrorAgainstHiddenNeuron * hiddenNeuron.SigmoidDerivative();
-				outputNodeIndex    = 0;
+				// Mulitply the summed total error against the hidden node derivative.
+				hiddenNode.Error = totalErrorAgainstHiddenNode * hiddenNode.SigmoidDerivative();
+				outputNodeIndex  = 0;
 			}
 
-			hiddenNodeIndex = 0;
+			UpdateWeights();
+		}
 
-			foreach (Node hiddenNode in _layerList.GetLayer(LayerType.Hidden))
-			{
-				foreach (Node outputNode in _layerList.GetLayer(LayerType.Output))
-				{
-					for (int i = 0; i < _outputNodeCount; i++)
-					{
-						changeOutputWeights[hiddenNodeIndex, i] = hiddenNode.NodeOutput * outputNode.Error;
-					}
-				}
-
-				hiddenNodeIndex++;
-			}
-
-			inputNodeIndex = 0;
-
-			foreach (Node inputNode in _layerList.GetLayer(LayerType.Input))
+		/// <summary>
+		/// Update the network weights.
+		/// </summary>
+		/// <returns></returns>
+		private void UpdateWeights()
+		{
+			int outputNodeIndex = 0;
+		
+			// Update the hidden weights.
+			foreach (Node outputNode in _layerList.GetLayer(LayerType.Output))
 			{
 				foreach (Node hiddenNode in _layerList.GetLayer(LayerType.Hidden))
 				{
-					for (int i = 0; i < _hiddenNodeCount; i++)
-					{
-						changeHiddenWeights[inputNodeIndex, i] = inputNode.NodeOutput * hiddenNode.Error;
-					}
+					hiddenNode.Weights[outputNodeIndex] += _learningRate * outputNode.Error * hiddenNode.NodeOutput;
 				}
-				inputNodeIndex++;
+				outputNodeIndex++;
 			}
 
-			UpdateWeights(changeHiddenWeights, changeOutputWeights);
-		}
+			int hiddenNodeIndex = 0;
 
-		/// <summary>
-		/// Update the network weights..
-		/// </summary>
-		/// <returns></returns>
-		private void UpdateWeights(double[,] changeInputWeights, double[,] changeHiddenWeights)
-		{
-			int hiddenNeuronIndex = 0;
-			foreach (Node hiddenNeuron in _layerList.GetLayer(LayerType.Hidden))
+			// Update the input weights.
+			foreach (Node hiddenNode in _layerList.GetLayer(LayerType.Hidden))
 			{
-				for (int i = 0; i < hiddenNeuron.Weights.Length; i++)
+				foreach (Node inputNode in _layerList.GetLayer(LayerType.Input))
 				{
-					hiddenNeuron.Weights[i] += _learningRate * changeHiddenWeights[hiddenNeuronIndex, i];
+					inputNode.Weights[hiddenNodeIndex] += _learningRate * hiddenNode.Error * inputNode.NodeOutput;
 				}
-				hiddenNeuronIndex++;
-			}
-
-			int inputNeuronIndex = 0;
-			foreach(Node inputNeuron in _layerList.GetLayer(LayerType.Input))
-			{
-				for(int i = 0; i < inputNeuron.Weights.Length; i++)
-				{
-					inputNeuron.Weights[i] += _learningRate * changeInputWeights[inputNeuronIndex,i];
-				}
-				inputNeuronIndex++;
+				hiddenNodeIndex++;
 			}
 		}
 
 		/// <summary>
-		/// Give the input layer of neurons their output data.
+		/// Give the input layer of nodes their output data.
 		/// </summary>
 		/// <param name="inputs">The inputs.</param>
 		public void SetInitialInputs(double[] inputs)
 		{
-			// Set the input neurons output to be the data inputs.
+			// Set the input nodes output to be the data inputs.
 			int inputIndex = 0;
 
-			foreach (Node inputNeuron in _layerList.ElementAt(0))
+			foreach (Node inputNode in _layerList.ElementAt(0))
 			{
-				inputNeuron.NodeOutput = inputs[inputIndex];
+				inputNode.NodeOutput = inputs[inputIndex];
 				inputIndex++;
 			}
 		}
@@ -243,35 +207,35 @@ namespace SimpleNeuralNetwork
 		}
 
 		/// <summary>
-		/// Feed the inputs through the network.
+		/// Reset all of the existing node outputs to 0.
 		/// </summary>
-		/// <param name="weights">The weights.</param>
-		public double[] MultiplyByWeights(double[] weights, double input)
+		/// <returns></returns>
+		private void ClearExistingOutputs()
 		{
-			return weights.Select(weight => weight * input).ToArray();
+			_layerList.ClearOutputs();
 		}
 
 		/// <summary>
-		/// Creates the neurons and initialise their weights.
+		/// Creates the nodes and initialise their weights.
 		/// </summary>
-		private void CreateNeuronLayers()
+		private void CreateNodeLayers()
 		{
-			// Create the neuron layers and give them some random initial weights
-			Nodes _inputNeurons  = new Nodes(_inputNodeCount, LayerType.Input);
-			_inputNeurons.InitialiseWeights(_hiddenNodeCount);
+			// Create the node layers and give them some random initial weights
+			Nodes _inputNodes  = new Nodes(_inputNodeCount, LayerType.Input);
+			_inputNodes.InitialiseWeights(_hiddenNodeCount);
 
-			Nodes _hiddenNeurons = new Nodes(_hiddenNodeCount, LayerType.Hidden);
-			_hiddenNeurons.InitialiseWeights(_outputNodeCount);
+			Nodes _hiddenNodes = new Nodes(_hiddenNodeCount, LayerType.Hidden);
+			_hiddenNodes.InitialiseWeights(_outputNodeCount);
 
-			// No weights are needed for the output neurons
-			Nodes _outputNeurons = new Nodes(_outputNodeCount, LayerType.Output);
+			// No weights are needed for the output nodes
+			Nodes _outputNodes = new Nodes(_outputNodeCount, LayerType.Output);
 
 			// Add each layer to a list.
 			_layerList = new Layers();
 
-			_layerList.Add(_inputNeurons);
-			_layerList.Add(_hiddenNeurons);
-			_layerList.Add(_outputNeurons);
+			_layerList.Add(_inputNodes);
+			_layerList.Add(_hiddenNodes);
+			_layerList.Add(_outputNodes);
 		}
 
 	}
