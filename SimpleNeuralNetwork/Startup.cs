@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using SimpleNeuralNetwork.Elements;
 using System.Threading;
+using System.IO;
+using SimpleNeuralNetwork.FileProcessing;
 
 namespace SimpleNeuralNetwork
 {
@@ -12,26 +14,47 @@ namespace SimpleNeuralNetwork
 	{
 		static void Main()
 		{
-			double[][] inputs = new double[][]{
-				new double[] { 0.01, 0.01 },
-				new double[] { 0.99, 0.01 },
-				new double[] { 0.01, 0.99 },
-				new double[] { 0.99, 0.99 }
-			};
 
-			double[] targets = { 0.01, 0.99, 0.99, 0.01 };
+			StreamReader reader = new StreamReader(@"C:\Users\malcolm-campbell\Documents\Final year stuff\mnist_train.csv");
 
-			Network neuralNetwork = new Network(2, 3, 1, 0.3);
+			Network neuralNetwork = new Network(784, 200, 10, 0.4);
 
-			for (int j = 0; j < 50000; j++)
+			int counter = 0;
+
+			while (!reader.EndOfStream && counter < 500)
 			{
-				for (int i = 0; i < inputs.Length; i++)
-				{
-					neuralNetwork.Train(inputs[i], targets[i]);
-				}
+				string line = reader.ReadLine();
+
+				double[] targets          = DataHelper.GenerateTargets(line);
+				double[] normalizedInputs = DataHelper.NormaliseData(line);
+
+				neuralNetwork.Train(normalizedInputs, targets);
+
+				counter++;
 			}
-			Console.WriteLine("True: {0}", neuralNetwork.Probe(new double[] { 0.01, 0.99 }));
-			Console.WriteLine("False: {0}", neuralNetwork.Probe(new double[] { 0.99, 0.99 }));
+
+			reader = new StreamReader(@"C:\Users\malcolm-campbell\Documents\Final year stuff\mnist_test.csv");
+
+			counter = 0;
+			while (!reader.EndOfStream && counter < 20)
+			{
+				string line = reader.ReadLine();
+
+				double[] normalizedInputs = DataHelper.NormaliseData(line);
+
+				Console.WriteLine("Target: {0}", line[0]);
+
+				double[] test = neuralNetwork.Probe(normalizedInputs);
+
+				for (int i = 0; i < test.Length; i++)
+				{
+					Console.WriteLine("Number {0}: {1}", i, test[i]);
+				}
+				counter++;
+			}
+
+			reader.Dispose();
+
 			Console.Read();
 		}
 	}

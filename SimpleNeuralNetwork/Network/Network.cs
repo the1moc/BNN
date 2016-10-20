@@ -52,7 +52,7 @@ namespace SimpleNeuralNetwork
 		/// Query the network.
 		/// </summary>
 		/// <param name="inputs">The inputs.</param>
-		public double Probe(double[] inputs)
+		public double[] Probe(double[] inputs)
 		{
 			ClearExistingInputs();
 			ClearExistingOutputs();
@@ -60,7 +60,7 @@ namespace SimpleNeuralNetwork
 			FeedForward();
 
 			// Get the last layer (output) and return a string of the output values.
-			return _layerList.GetLayer(LayerType.Output).ElementAt(0).NodeOutput;
+			return _layerList.GetLayer(LayerType.Output).Select(node => node.NodeOutput).ToArray();
 		}
 
 		/// <summary>
@@ -68,7 +68,7 @@ namespace SimpleNeuralNetwork
 		/// </summary>
 		/// <param name="inputs">The inputs.</param>
 		/// <param name="targetOutput">The target output.</param>
-		public void Train(double[] inputs, double target)
+		public void Train(double[] inputs, double[] target)
 		{
 			ClearExistingInputs();
 			ClearExistingOutputs();
@@ -118,14 +118,15 @@ namespace SimpleNeuralNetwork
 		/// Backpropogate the error through the network.
 		/// </summary>
 		/// <param name="target">The target output.</param>
-		private void BackPropogate(double target)
+		private void BackPropogate(double[] target)
 		{
-			int outputNodeIndex;
+			int outputNodeIndex = 0;
 
 			// Calculate the error for each output node
 			foreach (Node outputNode in _layerList.GetLayer(LayerType.Output))
 			{
-				outputNode.Error = (target - outputNode.NodeOutput) * outputNode.SigmoidDerivative();
+				outputNode.Error = (target[outputNodeIndex] - outputNode.NodeOutput) * outputNode.SigmoidDerivative();
+				outputNodeIndex++;
 			}
 
 			outputNodeIndex = 0;

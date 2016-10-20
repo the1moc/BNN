@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileProcessing\DataHelper.cs" />
     <Compile Include="Network\Network.cs" />
     <Compile Include="Nodes\LayerType.cs" />
     <Compile Include="Nodes\Layers.cs" />

@@ -16,7 +16,7 @@ namespace SimpleNeuralNetwork.Util
 		/// <returns></returns>
 		public static double GetRandomDouble()
 		{
-			return 2 * rng.NextDouble() - 0.5;
+			return rng.NextDouble() - 0.5;
 		}
 	}
 }
